@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>당신의 학습 성향에 꼭 맞는 외국어 프로그램은?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Sunflower', sans-serif;
+      background: linear-gradient(to bottom right, #e3f2fd, #bbdefb);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      width: 90%;
+      max-width: 600px;
+      background: white;
+      padding: 40px 30px;
+      margin-top: 50px;
+      border-radius: 20px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #0d47a1;
+      font-family: 'Jua', sans-serif;
+    }
+    p.description {
+      text-align: center;
+      font-size: 1.2em;
+      color: #333;
+      margin-top: 10px;
+    }
+    .question {
+      margin-top: 30px;
+    }
+    .options label {
+      display: block;
+      background: #e3f2fd;
+      margin: 12px 0;
+      padding: 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+      text-align: center;
+      font-size: 1.05em;
+    }
+    .options label.selected {
+      border-color: #1565c0;
+      background: #bbdefb;
+      font-weight: bold;
+    }
+    .options input[type="radio"] {
+      display: none;
+    }
+    .progress {
+      height: 10px;
+      background: #cfd8dc;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #1565c0;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .btn {
+      display: block;
+      margin: 30px auto 0;
+      padding: 12px 24px;
+      background: #1565c0;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.05em;
+    }
+    .result {
+      display: none;
+      white-space: pre-wrap;
+      text-align: center;
+      font-size: 1.2em;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="startPage">
+    <h1>나에게 맞는 외국어 프로그램 찾기</h1>
+    <p class="description">7문항으로 알아보는 나의 학습 성향과 최적의 프로그램!</p>
+    <button class="btn" onclick="startQuiz()">시작하기</button>
+  </div>
+
+  <div class="container" id="quizPage" style="display:none;">
+    <h1>당신의 학습 성향에 꼭 맞는 외국어 프로그램은?</h1>
+    <div class="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <form id="quizForm">
+      <div id="quizContainer"></div>
+      <button type="button" class="btn" onclick="nextQuestion()">다음</button>
+    </form>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+const quizData = [
+  {
+    q: "1. 방학 중 외국어 공부, 당신은 어떤 스타일인가요?",
+    a: [
+      { text: "방학이니까 기숙사에서  빡세게 공부해보고 싶어요", score: { ts: 1, t7: 1 } },
+      { text: "시간 여유 있게 학기 중에 천천히 배우고 싶어요", score: { ti: 1, el: 1 } },
+      { text: "단기간에 점수 딱 따고 싶어요", score: { jl: 1 } },
+      { text: "방학보다는 학기 중에 실전 모의시험이나 해보고 싶어요", score: { el: 1, ch: 1 } }
+    ]
+  },
+  {
+    q: "2. 수업 방식, 어떤 게 가장 잘 맞아요?",
+    a: [
+      { text: "규칙적인 시간표와 철저한 관리가 좋아요", score: { ts: 2 } },
+      { text: "가볍고 쉽게 접근할 수 있는 수업이 좋아요", score: { ti: 1, el: 1 } },
+      { text: "기출문제 위주로 팍팍 푸는 게 제 스타일이에요", score: { jl: 2, ch: 2 } },
+      { text: "부담 없이 혼자 시험 연습 위주로 하고 싶어요", score: { t7: 2, mo: 1 } }
+    ]
+  },
+  {
+    q: "3. 외국어 공부를 시작하려 하는 이유가 뭔가요?",
+    a: [
+      { text: "목표 점수 없으면 졸업도 취업도 힘들잖아요", score: { ts: 2 } },
+      { text: "외국인 친구랑 대화하고 싶어서요", score: { ti: 1, t7: 1 } },
+      { text: "어학 관련 자격증 목표로 하고 있어요", score: { jl: 1, ch: 1 } },
+      { text: "실전 감각을 키우고 싶어요", score: { el: 2 } }
+    ]
+  },
+  {
+    q: "4. 지금 나의 외국어 실력은 어느 정도인가요?",
+    a: [
+      { text: "토익 700은 넘었어요", score: { ts: 2, mo: 2 } },
+      { text: "이제 막 시작하는 단계예요", score: { t7: 2, ti: 1 } },
+      { text: "목표는 있지만 아직 더 올라가야해요", score: { el: 2, ch: 1 } },
+      { text: "실력보단 경험이 필요해서 시험부터 봐보고 싶어요", score: { jl: 2, ch: 2 } }
+    ]
+  },
+  {
+    q: "5. 수업이 진행된다면, 어떤 커리큘럼이 좋을 것 같나요?",
+    a: [
+      { text: "하루 종일 강의 + 자습 반복, 밀착 피드백!", score: { ts: 2, t7: 1 } },
+      { text: "일주일에 1~2번 가볍게 수업 듣고 싶어요", score: { el: 2 } },
+      { text: "시험 전 벼락치기 특강이 최고죠!", score: { jl: 2, ch: 2 } },
+      { text: "한 번쯤 실전처럼 시험 보면서 점검해보고 싶어요", score: { ti: 2 } }
+    ]
+  },
+  {
+    q: "6. 외국어를 배울 때, 어떤 게 제일 중요하다고 생각하세요?",
+    a: [
+      { text: "철저한 관리와 반복 훈련", score: { ts: 1, t7: 1 } },
+      { text: "실생활 표현과 대화 위주(회화반-1점)", score: { el: 2 } },
+      { text: "자격증이나 점수 취득이 우선이에요", score: { jl: 1, ch: 1 } },
+      { text: "꾸준히 실전 연습하면서 익히는 것", score: { ti: 2 } }
+    ]
+  },
+  {
+    q: "7. 학습에 임하는 당신의 태도는 어떤 편인가요?",
+    a: [
+      { text: "목표가 생기면 전략 세워서 끝까지 밀어붙이는 편이에요", score: { ts: 3 } },
+      { text: "처음엔 차근차근 기초부터 다지는 게 가장 중요하다고 생각해요", score: { el: 3 } },
+      { text: "환경만 갖춰지면 짧은 기간에도 몰입해서 성과 내는 스타일이에요", score: { jl: 2, ch: 2 } },
+      { text: "공부는 흥미가 유지돼야 오래가는 것 같아요", score: { ti: 1, t7: 1 } }
+    ]
+  }
+];
+
+    const results = {
+      ts: { text: "<b>🔥 토익사관학교추천!</b><br> ✨ 프로그램 소개<br> 기숙사에서 집중 몰입! 방학 동안 토익 점수 폭풍 상승을 원한다면 여기로!<br> 모의고사 반복 훈련 + 강사 밀착 피드백까지, 4주 만에 토익 끝장내기!<br>💡 당신은 이런 성향!<br>✔ 목표 생기면 끝까지 밀어붙이는 열정파!<br>✔ 철저한 시간 관리와 빡센 루틴도 즐기는 스타일!<br>✔ 환경만 갖춰지면 단기간 몰입 가능!<br> 👉 그래서 당신은 ‘토익사관학교’ 스타일이에요!<br> 📘 프로그램 안내<br> ✅ 신청 대상: 2~4학년<br> 📅 운영 시기: 하계방학 / 동계방학 (연 2회)<br> ⏳ 운영 기간: 4주<br> 🏠 기숙형 집중 프로그램'<br> 📚 반복 모의시험, 강사 밀착 피드백 제공", url: "#" },
+      ti: { text: "<b>토익입문반 추천!</b><br>...", url: "#" },
+      ch: { text: "<b>원어민기초회화반 추천!</b><br>...", url: "#" },
+      t7: { text: "<b>토익 750+반 추천!</b><br>...", url: "#" },
+      jl: { text: "<b>JLPT 특강 추천!</b><br>...", url: "#" },
+      mo: { text: "<b>모의토익시험 추천!</b><br>...", url: "#" },
+      el: { text: "<b>토익 엘리트 프로그램 추천!</b><br>...", url: "#" }
+    };
+
+    let current = 0;
+    let scores = { ts: 0, ti: 0, ch: 0, t7: 0, jl: 0, mo: 0, el: 0 };
+
+    const quizContainer = document.getElementById("quizContainer");
+    const progressBar = document.getElementById("progressBar");
+    const resultContainer = document.getElementById("result");
+
+    function startQuiz() {
+      document.getElementById("startPage").style.display = "none";
+      document.getElementById("quizPage").style.display = "block";
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const q = quizData[current];
+      progressBar.style.width = `${(current / quizData.length) * 100}%`;
+
+      let html = `<div class='question'><h2>${q.q}</h2><div class='options'>`;
+      q.a.forEach((opt, idx) => {
+        html += `<label onclick="selectOption(this)"><input type='radio' name='q${current}' value='${idx}' /> ${opt.text}</label>`;
+      });
+      html += "</div></div>";
+
+      quizContainer.innerHTML = html;
+    }
+
+    function selectOption(el) {
+      document.querySelectorAll(`input[name='q${current}']`).forEach(input => {
+        input.parentElement.classList.remove("selected");
+      });
+      el.classList.add("selected");
+      el.querySelector("input[type='radio']").checked = true;
+    }
+
+    function nextQuestion() {
+      const selected = document.querySelector(`input[name='q${current}']:checked`);
+      if (!selected) return alert("선택지를 골라주세요.");
+
+      const idx = selected.value;
+      const scoreObj = quizData[current].a[idx].score;
+      Object.keys(scoreObj).forEach(key => {
+        scores[key] += scoreObj[key];
+      });
+
+      current++;
+      if (current === quizData.length) {
+        progressBar.style.width = '100%';
+        showResult();
+      } else {
+        renderQuestion();
+      }
+    }
+
+    function showResult() {
+      document.querySelector("form").style.display = "none";
+      resultContainer.style.display = "block";
+
+      const max = Object.entries(scores).sort(
+        (a, b) =>
+          b[1] - a[1] ||
+          ["ts", "ti", "ch", "t7", "mo", "jl", "el"].indexOf(a[0]) -
+          ["ts", "ti", "ch", "t7", "mo", "jl", "el"].indexOf(b[0])
+      )[0][0];
+
+      const result = results[max];
+      resultContainer.innerHTML = `
+        <h2>당신에게 맞는 프로그램은?</h2>
+        <p style="margin-bottom: 30px;">${result.text}</p>
+        <a href="${result.url}" target="_blank" style="display:inline-block; padding: 10px 20px; background:#1565c0; color:white; text-decoration:none; border-radius: 8px; font-weight: bold;">프로그램 보러가기</a>
+      `;
+    }
+  </script>
+</body>
+</html>
